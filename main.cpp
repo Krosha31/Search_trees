@@ -31,27 +31,24 @@
 //        std::cout << '\n';
 //    }
 //}
-
-template <typename Tree>
-void print_tree(std::shared_ptr<Tree> tree, int level) {
-    if (tree) {
-        print_tree(tree->right, level + 1);
-        for (int i = 0; i < level; ++i) {
-            std::cout <<'\t';
-        }
-        std::cout << tree->key << "(" << static_cast<int>(tree->height) << ")" << '\n';
-        print_tree(tree->left, level + 1);
-    }
-}
+//
+//template <typename Tree>
+//void print_tree(Tree* tree, int level) {
+//    if (tree) {
+//        print_tree(tree->right, level + 1);
+//        for (int i = 0; i < level; ++i) {
+//            std::cout <<'\t';
+//        }
+//        std::cout << tree->key << '\n';
+//        print_tree(tree->left, level + 1);
+//    }
+//}
 
 int main() {
-    std::shared_ptr<Node> root = std::make_shared<Node>(1);
+    AVLTree tree(1);
     for (int i = 2; i < 4; i++) {
-        auto predroot = root;
-        root = root->add_node(i);
+        tree.add_node(i);
         //root->print_tree();
     }
-    std::cout << static_cast<int>(root->height) << " " << root->get_balance();
-    std::cout << '\n';
-    print_tree(root, 0);
+    tree.print_tree();
 }
