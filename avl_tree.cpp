@@ -39,6 +39,23 @@ public:
         print_tree(_root, 0);
     }
 
+    bool find(int key) {
+        std::shared_ptr<Node> temp = _root;
+        while (temp) {
+            if (temp->key == key) {
+                return true;
+            } else if (temp->key > key) {
+                temp = temp->left;
+            } else {
+                temp = temp->right;
+            }
+        }
+        return false;
+    }
+
+    void remove_node(int removed_key) {
+        _root = remove_node(removed_key, _root);
+    }
 
 private:
     std::shared_ptr<Node> add_node(int new_key, const std::shared_ptr<Node>& node) {
@@ -72,7 +89,7 @@ private:
         node->height = std::max(left_height, right_height) + 1;
     }
 
-    std::shared_ptr<Node> right_rotation(const std::shared_ptr<Node>& node) {
+    std::shared_ptr<Node> rotate_right(const std::shared_ptr<Node>& node) {
         auto new_root = node->left;
         node->left =  node->left->right;
         new_root->right = node;
@@ -81,7 +98,7 @@ private:
         return new_root;
     }
 
-    std::shared_ptr<Node> left_rotation(std::shared_ptr<Node> node) {
+    std::shared_ptr<Node> rotate_left(std::shared_ptr<Node> node) {
         auto new_root = node->right;
         node->right = node->right->left;
         new_root->left = node;
@@ -94,17 +111,54 @@ private:
         fix_height(node);
         if (get_balance(node) == 2) {
             if (get_balance(node->right) < 0) {
-                node->right = right_rotation(node->right);
+                node->right = rotate_right(node->right);
             }
-            return left_rotation(node);
+            return rotate_left(node);
         }
         if (get_balance(node) == -2) {
             if (get_balance(node->left) > 0) {
-                node->left = left_rotation(node->left);
+                node->left = rotate_left(node->left);
             }
-            return right_rotation(node);
+            return rotate_right(node);
         }
         return node;
+    }
+
+    [[nodiscard]] std::shared_ptr<Node> get_min(std::shared_ptr<Node> node) const {
+        while (node->left) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    std::shared_ptr<Node> remove_min_node(std::shared_ptr<Node> node) {
+        if (!node->left) {
+            return node->right;
+        }
+        node->left = remove_min_node(node->left);
+        return balance(node);
+    }
+
+    std::shared_ptr<Node> remove_node(int removed_key, std::shared_ptr<Node> node) {
+        if (!node) {
+            return nullptr;
+        }
+        if (removed_key < node->key) {
+            node->left = remove_node(removed_key, node->left);
+        } else if (removed_key > node->key) {
+            node->right = remove_node(removed_key, node->right);
+        } else {
+            auto node_left = node->left;
+            auto node_right = node->right;
+            if (!node_right) {
+                return node_left;
+            }
+            auto min = get_min(node_right);
+            min->right = remove_min_node(node_right);
+            min->left = node->left;
+            return balance(min);
+        }
+        return balance(node);
     }
 
     void print_tree(const std::shared_ptr<Node>& node, int level) const {

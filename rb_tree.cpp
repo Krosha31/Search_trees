@@ -25,13 +25,16 @@ public:
     RBTree() = delete;
 
     explicit RBTree(int key){
+        _null = std::make_shared<Node>(1);
+        _null->color = Color::BLACK;
         _root = std::make_shared<Node>(key);
         _root->color = Color::BLACK;
         _root->left = _root->right = _null;
     }
 
-    RBTree(const RBTree& node) {
-        _root = node._root;
+    RBTree(const RBTree& tree) {
+        _root = tree._root;
+        _null = tree._root;
     }
 
     void add_node(int new_key) {
@@ -41,10 +44,25 @@ public:
     void print_tree() const {
         print_tree(_root, 0);
     }
+
+    bool find(int key) {
+        std::shared_ptr<Node> temp = _root;
+        while (temp != _null) {
+            if (temp->key == key) {
+                return true;
+            } else if (temp->key > key) {
+                temp = temp->left;
+            } else {
+                temp = temp->right;
+            }
+        }
+        return false;
+    }
+
 private:
     void add_node(int new_key, const std::shared_ptr<Node>& node) {
         if (new_key < node->key) {
-            if (!node->left) {
+            if (node->left == _null) {
                 node->left = std::make_shared<Node>(new_key);
                 node->left->left = node->left->right = _null;
                 node->left->parent = node;
@@ -53,7 +71,7 @@ private:
                 add_node(new_key, node->left);
             }
         } else {
-            if (!node->right) {
+            if (node->right == _null) {
                 node->right = std::make_shared<Node>(new_key);
                 node->right->left = node->right->right = _null;
                 node->right->parent = node;
@@ -64,9 +82,9 @@ private:
         }
     }
 
-    std::shared_ptr<Node> balance_after_adding(std::shared_ptr<Node> node) {
+    void balance_after_adding(std::shared_ptr<Node> node) {
         std::shared_ptr<Node> some_name;
-        while (node->parent->color == Color::RED) {
+        while (node->parent && node->parent->color == Color::RED) {
             if (node->parent == node->parent->parent->right) {
                 some_name = node->parent->parent->left;
                 if (some_name->color == Color::RED) {
@@ -77,11 +95,11 @@ private:
                 } else {
                     if (node == node->parent->left) {
                         node = node->parent;
-                        right_rotation(node);
+                        rotate_right(node);
                     }
                     node->parent->color = Color::BLACK;
                     node->parent->parent->color = Color::RED;
-                    left_rotation(node->parent->parent);
+                    rotate_left(node->parent->parent);
                 }
             } else {
                 some_name = node->parent->parent->right;
@@ -93,18 +111,18 @@ private:
                 } else {
                     if (node == node->parent->right) {
                         node = node->parent;
-                        left_rotation(node);
+                        rotate_left(node);
                     }
                     node->parent->color = Color::BLACK;
                     node->parent->parent->color = Color::RED;
-                    right_rotation(node->parent->parent);
+                    rotate_right(node->parent->parent);
                 }
             }
         }
         _root->color = Color::BLACK;
     }
 
-    void left_rotation(std::shared_ptr<Node> x_node) {
+    void rotate_left(const std::shared_ptr<Node>& x_node) {
         auto y_node = x_node->right;
         x_node->right = y_node->left;
         if (y_node->left != _null) {
@@ -123,7 +141,7 @@ private:
     }
 
 
-    void right_rotation(std::shared_ptr<Node> x_node) {
+    void rotate_right(const std::shared_ptr<Node>& x_node) {
         auto y_node = x_node->left;
         x_node->left = y_node->right;
         if (y_node->right != _null) {
@@ -142,12 +160,12 @@ private:
     }
 
     void print_tree(const std::shared_ptr<Node>& node, int level) const {
-        if (node) {
+        if (node != _null) {
             print_tree(node->right, level + 1);
             for (int i = 0; i < level; ++i) {
                 std::cout <<'\t';
             }
-            std::cout << node->key << '\n';
+            std::cout << node->key << '(' << static_cast<int>(node->color) << ")" << '\n';
             print_tree(node->left, level + 1);
         }
     }
