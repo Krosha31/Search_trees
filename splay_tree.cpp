@@ -18,7 +18,7 @@ class SplayTree {
     };
     std::shared_ptr<Node> _root;
 public:
-
+    const std::string name = "splay";
     SplayTree() = delete;
 
     explicit SplayTree(int key): _root(std::make_shared<Node>(key)){}
@@ -54,6 +54,10 @@ public:
         return false;
     }
 
+    int get_height() const {
+        return get_height(_root);
+    }
+
 private:
     void add_node(int new_key, std::shared_ptr<Node> node) {
         if (new_key < node->key) {
@@ -78,11 +82,39 @@ private:
 
     void remove_node(int removed_key, std::shared_ptr<Node> node) {
         if (!node) {
-            throw "There is no such element";
+            std::cout << "There is no such element" << std::endl;
+            return;
         }
         if (node->key == removed_key) {
-            splay(node);
-            merge(node->left, node->right);
+            if (node->right && node->left) {
+                splay(node);
+                node->left->parent = nullptr;
+                node->right->parent = nullptr;
+                merge(node->left, node->right);
+            } else {
+                std::shared_ptr<Node> new_node;
+                if (!node->left && !node->right) {
+                    new_node = nullptr;
+                } else if (!node->left) {
+                    new_node = node->right;
+                } else {
+                    new_node = node->left;
+                }
+                if (!node->parent) {
+                    _root = new_node;
+                    _root->parent = nullptr;
+                } else if (node == node->parent->left) {
+                    node->parent->left = new_node;
+                    if (new_node) {
+                        new_node->parent = node->parent;
+                    }
+                } else {
+                    node->parent->right = new_node;
+                    if (new_node) {
+                        new_node->parent = node->parent;
+                    }
+                }
+            }
         } else if (node->key > removed_key) {
             remove_node(removed_key, node->left);
         } else {
@@ -91,8 +123,8 @@ private:
     }
 
     void rotate_left(std::shared_ptr<Node> node) {
-        auto parent_node = node->parent; // nullptr
-        auto right_son_node = node->right; // _root
+        auto parent_node = node->parent;
+        auto right_son_node = node->right;
         if (parent_node) {
             if (parent_node->left == node) {
                 parent_node->left = right_son_node;
@@ -134,30 +166,27 @@ private:
         while (node->parent) {
             if (node == node->parent->left) {
                 if (!node->parent->parent) {
-                    //std::cout << 1 << std::endl;
                     rotate_right(node->parent);
                 } else if (node->parent == node->parent->parent->left) {
-                    //std::cout << 2 << std::endl;
                     rotate_right(node->parent->parent);
                     rotate_right(node->parent);
                 } else {
-                    //std::cout << 3 << std::endl;
-                    rotate_right(node->parent->parent);
+                    rotate_right(node->parent);
                     rotate_left(node->parent);
                 }
             }
             else {
                 if (!node->parent->parent) {
-                    //std::cout << 4 << std::endl;
                     rotate_left(node->parent);
                 } else if (node->parent == node->parent->parent->right) {
-                    //std::cout << 5 << std::endl;
                     rotate_left(node->parent->parent);
                     rotate_left(node->parent);
                 } else {
-                    //std::cout << 6 << std::endl;
-                    rotate_left(node->parent->parent);
+                    //std::cout << 1 << std::endl;
+                    rotate_left(node->parent);
+                    //std::cout << 2 << std::endl;
                     rotate_right(node->parent);
+                    //std::cout << 3 << std::endl;
                 }
             }
         }
@@ -186,5 +215,12 @@ private:
             std::cout << node->key << '\n';
             print_tree(node->left, level + 1);
         }
+    }
+
+    int get_height(std::shared_ptr<Node> node) const {
+        if (node) {
+            return 1 + std::max(get_height(node->left), get_height(node->right));
+        }
+        return 0;
     }
 };

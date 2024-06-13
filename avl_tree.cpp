@@ -6,7 +6,7 @@ class AVLTree {
     struct Node {
         std::shared_ptr<Node> left = nullptr;
         std::shared_ptr<Node> right = nullptr;
-        unsigned char height = 1;
+        unsigned int height = 1;
         int key;
 
         Node() {
@@ -22,7 +22,7 @@ class AVLTree {
     };
     std::shared_ptr<Node> _root;
 public:
-
+    const std::string name = "avl";
     AVLTree() = delete;
 
     explicit AVLTree(int key): _root(std::make_shared<Node>(key)){}
@@ -55,6 +55,10 @@ public:
 
     void remove_node(int removed_key) {
         _root = remove_node(removed_key, _root);
+    }
+
+    int get_height() const {
+        return _root->height;
     }
 
 private:
